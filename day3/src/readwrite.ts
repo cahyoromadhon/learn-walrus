@@ -13,7 +13,7 @@ const client = new SuiClient({
 
 // --- Setup Keypair ---
 const keypair = Ed25519Keypair.fromSecretKey(PRIV_KEY_64);
-console.log(`Menggunakan alamat signer: ${keypair.getPublicKey().toSuiAddress()}`)
+console.log(`Signer Address: ${keypair.getPublicKey().toSuiAddress()}`)
 
 // fromBase64(PRIV_KEY_64) itu berguna untuk mengubah string base64 private key kita menjadi Uint8Array atau byte data mentah karena basically dalam dunia kriptografi, string tidak akan pernah bisa langsung digunakan dan harus diubah dulu ke byte data mentah supaya bisa diproses komputer
 
@@ -25,11 +25,11 @@ console.log(`Menggunakan alamat signer: ${keypair.getPublicKey().toSuiAddress()}
 
 async function main() {
   // --- Tahap A: Write File to Walrus ---
-  console.log('\n Mempersiapkan File untuk diunggah ke Walrus...');
-  const fileData = {name: 'cahyorom', project: 'DevCore DAO'};
+  console.log('\nPreparing file to be uploaded to Walrus...');
+  const fileData = {name: 'cahyorom', blockchain: 'SUI'};
   const fileToUpload = WalrusFile.from({
     contents: new TextEncoder().encode(JSON.stringify(fileData)), // Mengubah objek JS ke JSON string
-    identifier: 'project-config.json', // Nama file di Walrus
+    identifier: 'file-data.json', // Nama file di Walrus
     tags: { // Metadata tambahan
       'user-id': 'cahyo-001',
       'last-update': new Date().toISOString() // Menyimpan tanggal update terakhir
@@ -37,7 +37,7 @@ async function main() {
   });
 
   try {
-    console.log('Mengunggah file ke Walrus...');
+    console.log('Uploading file to Walrus...');
     const results = await client.walrus.writeFiles({ // Mengunggah file ke Walrus
       files: [fileToUpload],
       epochs: 3,
@@ -45,10 +45,10 @@ async function main() {
       signer: keypair
     });
     const quiltId = results[0].id;
-    console.log(`Sukses mengunggah file ke Walrus dengan Quilt ID: ${quiltId}`);
+    console.log(`Success! Quilt ID: ${quiltId}`);
 
     // --- Tahap B: Read File from Walrus ---
-    console.log('\nMembaca kembali file dari Walrus menggunakan Quilt ID...');
+    console.log('\nReading files from Walrus using Quilt ID...');
     const files = await client.walrus.getFiles({
       ids: [quiltId]
     });
@@ -58,13 +58,13 @@ async function main() {
     const identifier = readFile.getIdentifier();
     const tags = readFile.getTags();
 
-    console.log('Berikut adalah isi file yang dibaca dari Walrus:');
+    console.log('Here`s the content of the file read from Walrus:');
     console.log(`Identifier: ${identifier}`);
     console.log('Tags:', tags);
     console.log('Content:', content);
 
   } catch (error) {
-    console.error('\nOperasi Gagal:', error);
+    console.error('\nOperation Failed:', error);
   }
 }
 
